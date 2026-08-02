@@ -3,6 +3,7 @@ import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Divider } from 'primereact/divider'
+import { Dropdown } from 'primereact/dropdown'
 import { InputNumber } from 'primereact/inputnumber'
 import { InputText } from 'primereact/inputtext'
 import { Message } from 'primereact/message'
@@ -13,6 +14,7 @@ import {
   createOrder,
   getEvents,
   getOrder,
+  getOrders,
   getPaymentFailMode,
   getPayments,
   getProducts,
@@ -80,6 +82,7 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [customerName, setCustomerName] = useState('Ava Johnson')
   const [order, setOrder] = useState<Order | null>(null)
+  const [existingOrders, setExistingOrders] = useState<Order[]>([])
   const [payments, setPayments] = useState<Payment[]>([])
   const [events, setEvents] = useState<SagaEvent[]>([])
   const [failMode, setFailMode] = useState<'always' | 'never'>('never')
@@ -93,15 +96,17 @@ function App() {
     async function loadInitialData() {
       try {
         setCatalogState('loading')
-        const [catalog, currentFailMode] = await Promise.all([
+        const [catalog, currentFailMode, persistedOrders] = await Promise.all([
           getProducts(),
           getPaymentFailMode(),
+          getOrders(),
         ])
 
         if (!active) return
 
         setProducts(catalog)
         setFailMode(currentFailMode === 'always' ? 'always' : 'never')
+        setExistingOrders(persistedOrders)
         setCatalogState('ready')
       } catch (error) {
         if (!active) return
@@ -212,6 +217,15 @@ function App() {
     }
   }
 
+  function handleSelectOrder(selectedId: number | null) {
+    const selected = existingOrders.find((item) => item.id === selectedId)
+    if (!selected) {
+      return
+    }
+    setOrder(selected)
+    setCart([])
+  }
+
   async function handleSubmitOrder() {
     if (!customerName.trim() || cart.length === 0 || submissionState === 'loading') {
       return
@@ -232,12 +246,14 @@ function App() {
       setOrder(latestOrder)
       setCart([])
 
-      const [freshPayments, freshEvents] = await Promise.all([
+      const [freshPayments, freshEvents, refreshedOrders] = await Promise.all([
         getPayments(latestOrder.id),
         getEvents(latestOrder.id),
+        getOrders(),
       ])
       setPayments(freshPayments)
       setEvents(freshEvents)
+      setExistingOrders(refreshedOrders)
     } catch (error) {
       setSyncError(error instanceof Error ? error.message : 'Order submission failed')
     } finally {
@@ -405,6 +421,26 @@ function App() {
               </div>
               {order ? <Tag severity={getOrderSeverity(order.status)} value={order.status} /> : null}
             </div>
+
+            {existingOrders.length > 0 ? (
+              <div className="form-stack resume-stack">
+                <label className="field-label" htmlFor="resume-order">
+                  Resume persisted order
+                </label>
+                <Dropdown
+                  id="resume-order"
+                  value={order?.id ?? null}
+                  options={existingOrders.map((item) => ({
+                    label: `#${item.id} — ${item.customer} (${item.status})`,
+                    value: item.id,
+                  }))}
+                  onChange={(event) => handleSelectOrder(event.value as number | null)}
+                  placeholder="Select an order from the DB"
+                  className="app-input"
+                  optionLabel="label"
+                />
+              </div>
+            ) : null}
 
             {order ? (
               <div className="status-stack">

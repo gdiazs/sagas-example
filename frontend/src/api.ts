@@ -111,6 +111,10 @@ export async function getOrder(orderId: number) {
   return requestJson<Order>(`${ORDERS_BASE}/orders/${orderId}`)
 }
 
+export async function getOrders() {
+  return requestJson<Order[]>(`${ORDERS_BASE}/orders`)
+}
+
 export async function getPayments(orderId?: number) {
   const query = typeof orderId === 'number' ? `?orderId=${orderId}` : ''
   return requestJson<Payment[]>(`${PAYMENTS_BASE}/payments${query}`)

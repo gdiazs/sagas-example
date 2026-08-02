@@ -223,6 +223,18 @@ class OrderControllerTest {
 	}
 
 	@Test
+	void listOrdersReturnsPersistedOrders() throws Exception {
+		Long first = createOrder("Alice");
+		Long second = createOrder("Bob");
+
+		mockMvc.perform(get("/orders"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].id").value(first))
+				.andExpect(jsonPath("$[1].id").value(second));
+	}
+
+	@Test
 	void getOrder() throws Exception {
 		Long orderId = createOrder("Grace");
 		addItem(orderId, 1L, 1);

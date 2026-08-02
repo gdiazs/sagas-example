@@ -224,6 +224,17 @@ public class OrderService {
 		return OrderResponse.from(findOrder(orderId));
 	}
 
+	/**
+	 * Read-only query — lists all persisted orders so a client can resume
+	 * an existing order after a page reload / restart.
+	 */
+	@Transactional(readOnly = true)
+	public List<OrderResponse> list() {
+		return orderRepository.findAllByOrderByIdAsc().stream()
+				.map(OrderResponse::from)
+				.toList();
+	}
+
 	private Order findOrder(Long orderId) {
 		return orderRepository.findById(orderId)
 				.orElseThrow(() -> new OrderNotFoundException(orderId));

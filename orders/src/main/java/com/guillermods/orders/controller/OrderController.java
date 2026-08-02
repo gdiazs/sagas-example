@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class OrderController {
 
@@ -35,6 +37,11 @@ public class OrderController {
 	@PostMapping("/orders/{id}/submit")
 	public OrderResponse submit(@PathVariable Long id) {
 		return orderService.submit(id);
+	}
+
+	@GetMapping("/orders")
+	public List<OrderResponse> list() {
+		return orderService.list();
 	}
 
 	@GetMapping("/orders/{id}")
