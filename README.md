@@ -7,8 +7,14 @@ and compensates (undoes) already-committed steps when a later step fails.
 | Service | Port | Role | DB |
 |---|---|---|---|
 | `orders` | 8081 | Saga orchestrator: catalog + orders + compensation | orders DB |
-| `payments` | 8082 | Fake payment gateway | payments DB |
+| `payments` | 8082 | Payment service (calls the external provider) | payments DB |
 | `events` | 8083 | Append-only event log | events DB |
+
+**External payment provider**: the saga charges a payment via an external
+provider (like Stripe). In this demo that provider is **simulated** by
+`FakePaymentGateway` inside `payments` (`gateway.charge(total)` in the diagrams) —
+it fakes success/failure based on amount and fail-mode, so you can demo the
+compensation path without a real provider.
 
 Each service has its **own database**, and each saga step durably persists its
 result before the saga moves on. `[persisted]` marks the moment data is written
@@ -34,6 +40,7 @@ sequenceDiagram
     participant C as Client
     participant O as orders (:8081)
     participant P as payments (:8082)
+    participant G as FakePaymentGW (simulated external provider)
     participant E as events (:8083)
 
     C->>O: POST /orders {customerName}
@@ -48,7 +55,9 @@ sequenceDiagram
     Note over O: [persisted] → orders DB (commit)
     O->>E: ORDER_PROCESSING
     O->>P: POST /payments/invoices {orderId, total, items}
-    P->>P: charge + save payment SUCCESS
+    P->>G: gateway.charge(total)
+    G-->>P: ok / declined
+    P->>P: save payment SUCCESS
     Note over P: [persisted] → payments DB (commit)
     P->>E: PAYMENT_SUCCEEDED
     P-->>O: {status: SUCCESS, paymentId}
@@ -65,6 +74,7 @@ sequenceDiagram
     participant C as Client
     participant O as orders (:8081)
     participant P as payments (:8082)
+    participant G as FakePaymentGW (simulated external provider)
     participant E as events (:8083)
 
     C->>O: POST /orders {customerName}
@@ -77,7 +87,9 @@ sequenceDiagram
     O->>O: status = PROCESSING
     Note over O: [persisted] → orders DB (commit)
     O->>P: POST /payments/invoices
-    P->>P: charge + save payment FAILED
+    P->>G: gateway.charge(total) → declined
+    G-->>P: throws PaymentException
+    P->>P: save payment FAILED
     Note over P: [persisted] → payments DB (commit)
     P->>E: PAYMENT_FAILED
     P-->>O: {status: FAILED}
