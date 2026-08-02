@@ -1,6 +1,18 @@
 name: saga
 
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: saga-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - orders
+      - payments
+      - events
+
   events:
     build:
       context: .
