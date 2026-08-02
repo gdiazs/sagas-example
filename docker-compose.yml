@@ -1,0 +1,51 @@
+name: saga
+
+services:
+  events:
+    build:
+      context: .
+      dockerfile: events/Dockerfile
+    container_name: saga-events
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/data/events.db
+    volumes:
+      - events-data:/data
+
+  payments:
+    build:
+      context: .
+      dockerfile: payments/Dockerfile
+    container_name: saga-payments
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/data/payments.db
+      APP_EVENTS_URL: http://events:8083
+    volumes:
+      - payments-data:/data
+    depends_on:
+      - events
+
+  orders:
+    build:
+      context: .
+      dockerfile: orders/Dockerfile
+    container_name: saga-orders
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/data/orders.db
+      APP_PAYMENTS_URL: http://payments:8082
+      APP_EVENTS_URL: http://events:8083
+    volumes:
+      - orders-data:/data
+    depends_on:
+      - payments
+      - events
+
+volumes:
+  events-data:
+  payments-data:
+  orders-data:

@@ -1,0 +1,119 @@
+= Orders Service API
+:doctype: book
+:icons: font
+
+Saga orchestrator. Owns the product catalog and the order aggregate
+(order + invoice + line items). Drives the saga: create order, add products,
+submit (which calls the payments service) and compensate on failure.
+
+== List products
+
+Returns the product catalog.
+
+=== HTTP request
+
+include::{snippets}/products-list/curl-request.adoc[]
+
+=== HTTP response
+
+include::{snippets}/products-list/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/products-list/response-fields.adoc[]
+
+== Create an order
+
+Creates a draft order with an empty invoice. Status: `CREATED`. Emits
+`ORDER_CREATED` to the events service.
+
+=== HTTP request
+
+include::{snippets}/orders-create/curl-request.adoc[]
+
+=== Request fields
+
+include::{snippets}/orders-create/request-fields.adoc[]
+
+=== HTTP response
+
+include::{snippets}/orders-create/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/orders-create/response-fields.adoc[]
+
+== Add an item to an order
+
+Adds a product to the order, atomically reserving stock and recomputing the
+invoice total. Only allowed while the order is `CREATED`.
+
+=== HTTP request
+
+include::{snippets}/orders-add-item/curl-request.adoc[]
+
+=== Path parameters
+
+include::{snippets}/orders-add-item/path-parameters.adoc[]
+
+=== Request fields
+
+include::{snippets}/orders-add-item/request-fields.adoc[]
+
+=== HTTP response
+
+include::{snippets}/orders-add-item/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/orders-add-item/response-fields.adoc[]
+
+== Submit an order
+
+Finalizes the invoice and runs the payment step: status moves to `PROCESSING`
+(emits `ORDER_PROCESSING`), then the complete invoice is sent to the payments
+service.
+
+* Payment succeeds → `COMPLETED`, invoice `PAID`, emits `ORDER_COMPLETED`.
+* Payment fails → compensation: stock restored, invoice `VOID`, status `FAILED`,
+  emits `ORDER_FAILED`.
+
+=== HTTP request
+
+include::{snippets}/orders-submit-success/curl-request.adoc[]
+
+=== Path parameters
+
+include::{snippets}/orders-submit-success/path-parameters.adoc[]
+
+=== HTTP response (success)
+
+include::{snippets}/orders-submit-success/http-response.adoc[]
+
+=== HTTP response (payment declined)
+
+include::{snippets}/orders-submit-failed/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/orders-submit-success/response-fields.adoc[]
+
+== Get an order
+
+Returns the full order aggregate (order, items and invoice).
+
+=== HTTP request
+
+include::{snippets}/orders-get/curl-request.adoc[]
+
+=== Path parameters
+
+include::{snippets}/orders-get/path-parameters.adoc[]
+
+=== HTTP response
+
+include::{snippets}/orders-get/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/orders-get/response-fields.adoc[]

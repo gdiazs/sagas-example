@@ -1,0 +1,47 @@
+= Events Service API
+:doctype: book
+:icons: font
+
+Saga history / read-model. Orders and payments append an event on every state
+change so the full saga trace for an order can be reconstructed later (e.g. by
+the frontend).
+
+== Append an event
+
+Appends a saga event. Called by the orders and payments services.
+
+=== HTTP request
+
+include::{snippets}/events-append/curl-request.adoc[]
+
+=== Request fields
+
+include::{snippets}/events-append/request-fields.adoc[]
+
+=== HTTP response
+
+include::{snippets}/events-append/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/events-append/response-fields.adoc[]
+
+== List events
+
+Returns all events, optionally filtered by order id.
+
+=== HTTP request
+
+include::{snippets}/events-list/curl-request.adoc[]
+
+=== Query parameters
+
+include::{snippets}/events-list/query-parameters.adoc[]
+
+=== HTTP response
+
+include::{snippets}/events-list/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/events-list/response-fields.adoc[]

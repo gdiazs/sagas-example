@@ -1,0 +1,80 @@
+= Payments Service API
+:doctype: book
+:icons: font
+
+Saga participant. Receives a complete invoice from the orders service, runs a
+simulated external transaction, persists the payment and reports the outcome.
+
+Failure simulation is controlled with the fail-mode endpoint and the
+`app.payment.fail-mode` / `app.payment.fail-threshold` configuration. An invoice
+whose total exceeds the threshold always fails.
+
+== Process an invoice
+
+Receives the complete invoice and executes the (fake) external transaction.
+Returns `SUCCESS` or `FAILED` — a failed payment is a normal HTTP response, not
+an error.
+
+=== HTTP request
+
+include::{snippets}/payments-process/curl-request.adoc[]
+
+=== Request fields
+
+include::{snippets}/payments-process/request-fields.adoc[]
+
+=== HTTP response
+
+include::{snippets}/payments-process/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/payments-process/response-fields.adoc[]
+
+== Process an invoice (failed payment)
+
+Same endpoint when the simulated transaction fails.
+
+=== HTTP request
+
+include::{snippets}/payments-process-failed/curl-request.adoc[]
+
+=== HTTP response
+
+include::{snippets}/payments-process-failed/http-response.adoc[]
+
+== Set fail-mode
+
+Toggles failure simulation between `never`, `always` and `random`.
+
+=== HTTP request
+
+include::{snippets}/payments-fail-mode/curl-request.adoc[]
+
+=== Request fields
+
+include::{snippets}/payments-fail-mode/request-fields.adoc[]
+
+=== HTTP response
+
+include::{snippets}/payments-fail-mode/http-response.adoc[]
+
+== List payments
+
+Returns all payments, optionally filtered by order id.
+
+=== HTTP request
+
+include::{snippets}/payments-list/curl-request.adoc[]
+
+=== Query parameters
+
+include::{snippets}/payments-list/query-parameters.adoc[]
+
+=== HTTP response
+
+include::{snippets}/payments-list/http-response.adoc[]
+
+=== Response fields
+
+include::{snippets}/payments-list/response-fields.adoc[]

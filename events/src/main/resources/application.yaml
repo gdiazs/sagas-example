@@ -1,3 +1,16 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: events
+  datasource:
+    url: jdbc:sqlite:events.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: none

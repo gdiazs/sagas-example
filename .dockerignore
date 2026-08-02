@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+*.db
+*.log
+**/target
+frontend
+node_modules
+mvnw
+mvnw.cmd
